@@ -11,7 +11,7 @@
     "lint": "tsc --project ./",
     "cdk": "cdk",
     "bootstrap": "cdk bootstrap",
-    "deploy": "cdk deploy",
+    "deploy": "cdk deploy; ts-node src/findSite.ts",
     "destroy": "cdk destroy",
     "local": "sam local start-api -t ./cdk.out/AmazonIVSRTWebDemoStack.template.json"
   },

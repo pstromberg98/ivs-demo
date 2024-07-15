@@ -10,6 +10,14 @@ const region = process.env.AWS_REGION;
 
 const ivsRealtimeClient = new IVSRealTime({ region, maxAttempts: 12 });
 
+async function participantCount(stageArn: string, sessionId: string) {
+  const { participants } = await ivsRealtimeClient.listParticipants({
+    stageArn: stageArn,
+    sessionId: sessionId,
+  });
+  return participants?.length || 0;
+}
+
 /**
  * IVS stages
  */
@@ -55,4 +63,4 @@ function disconnectParticipant(
   });
 }
 
-export { createStage, createStageToken, deleteStage, disconnectParticipant };
+export { createStage, createStageToken, deleteStage, disconnectParticipant, participantCount };

@@ -1,4 +1,5 @@
 import {
+  CfnOutput,
   Duration,
   RemovalPolicy,
   Stack,
@@ -20,9 +21,18 @@ import {
   Rule as EventRule,
   Schedule as EventSchedule,
 } from "aws-cdk-lib/aws-events";
-import { LambdaFunction as TargetLambdaFunction } from "aws-cdk-lib/aws-events-targets";
+import { LambdaFunction, LambdaFunction as TargetLambdaFunction } from "aws-cdk-lib/aws-events-targets";
 import { Construct } from "constructs";
 import { DDBTableName } from "./constants";
+import { BucketDeployment, Source } from "aws-cdk-lib/aws-s3-deployment";
+import { BlockPublicAccess, Bucket } from "aws-cdk-lib/aws-s3";
+import S3 from 'aws-sdk/clients/S3';
+
+import path from "path";
+import { CloudFrontWebDistribution, Function, FunctionCode, FunctionEventType, FunctionRuntime } from "aws-cdk-lib/aws-cloudfront";
+import { Distribution, FunctionAssociation, CfnFunction } from "aws-cdk-lib/aws-cloudfront";
+import { ConfigurationSource, SourcedConfiguration } from "aws-cdk-lib/aws-appconfig";
+import { S3Origin } from "aws-cdk-lib/aws-cloudfront-origins";
 
 function getPolicy(): PolicyStatement {
   return new PolicyStatement({
@@ -188,7 +198,89 @@ class AmazonIVSRTWebDemoStack extends Stack {
       schedule: EventSchedule.rate(Duration.minutes(1)),
     });
     eventRule.addTarget(new TargetLambdaFunction(cleanupFunction));
+
+    const unpublishedFunction = new NodejsFunction(this, "AmazonIVSRTWebDemoUnpublishedFunction", {
+      entry: "lambda/unpublishHandler.ts",
+      handler: "unpublishHandler",
+      initialPolicy,
+      runtime,
+      bundling,
+      environment,
+      timeout,
+    });
+    const unpublishedEventRule = new EventRule(this, "unpublishedRule", {
+      eventPattern: {
+        detailType: ['IVS Stage Update'],
+        source: ['aws.ivs']
+      }
+    });
+    unpublishedEventRule.addTarget(new TargetLambdaFunction(unpublishedFunction));
+    const bucket = new Bucket(this, 'site-bucket', {
+      removalPolicy: RemovalPolicy.DESTROY,
+      blockPublicAccess: BlockPublicAccess.BLOCK_ACLS,
+      publicReadAccess: true,
+    });
+    const publicPolicy = new PolicyStatement({
+      sid: "PublicReadGetObject",
+      effect: Effect.ALLOW,
+      actions: ["s3:GetObject"],
+      resources: [`arn:aws:s3:::${bucket.bucketName}/*`]
+    });
+    bucket.addToResourcePolicy(publicPolicy)
+    publicPolicy.addAnyPrincipal()
+
+    new BucketDeployment(this, 'site-deployment', {
+      destinationBucket: bucket,
+      sources: [Source.asset(path.join(__dirname, '../../dist'))]
+    });
+
+    const indexRedirectFunction = new Function(this, 'site-distribution-index-function', {
+      functionName: 'indexRedirectFunciton',
+      code: FunctionCode.fromInline(cfnIndexCode),
+      runtime: FunctionRuntime.JS_2_0,
+    });
+
+    const cfDistribution = new Distribution(this, 'site-distribution', {
+      defaultBehavior: {
+        functionAssociations: [
+          {
+            function: indexRedirectFunction,
+            eventType: FunctionEventType.VIEWER_REQUEST,
+          },
+        ],
+        origin: new S3Origin(bucket),
+      }
+    });
+    new CfnOutput(this, 'site-distribution-url', {
+      value: cfDistribution.distributionDomainName,
+      key: 'appUrl',
+    })
+
+    new CfnOutput(this, 'api-url', {
+      value: api.url,
+      key: 'apiUrl',
+    })
   }
 }
+
+var cfnIndexCode = `
+function handler(event) {
+    var request = event.request;
+    var uri = request.uri;
+    
+    console.log(uri)
+    
+    // Check whether the URI is missing a file name.
+    if (uri.endsWith('/')) {
+        request.uri += 'index.html';
+    } 
+    // Check whether the URI is missing a file extension.
+    else if (!uri.includes('.')) {
+        request.uri = '/index.html';
+    }
+
+    return request;
+}
+`
 
 export default AmazonIVSRTWebDemoStack;
