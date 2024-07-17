@@ -11,8 +11,8 @@
     "lint": "tsc --project ./",
     "cdk": "cdk",
     "bootstrap": "cdk bootstrap",
-    "deploy": "cdk deploy; ts-node src/findSite.ts",
-    "destroy": "cdk destroy",
+    "deploy": "cdk deploy --all; ts-node src/deploySite.ts",
+    "destroy": "cdk destroy --all",
     "local": "sam local start-api -t ./cdk.out/AmazonIVSRTWebDemoStack.template.json"
   },
   "devDependencies": {
@@ -55,6 +55,7 @@
     "@aws-sdk/client-lambda": "^3.536.0",
     "@aws-sdk/lib-dynamodb": "^3.538.0",
     "aws-cdk-lib": "^2.133.0",
+    "chalk": "^4.1.2",
     "constructs": "^10.3.0",
     "prompts": "^2.4.2",
     "source-map-support": "^0.5.21",

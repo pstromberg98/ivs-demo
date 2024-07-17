@@ -215,10 +215,13 @@ class AmazonIVSRTWebDemoStack extends Stack {
       }
     });
     unpublishedEventRule.addTarget(new TargetLambdaFunction(unpublishedFunction));
+
+    // S3 and CloudFront
     const bucket = new Bucket(this, 'site-bucket', {
       removalPolicy: RemovalPolicy.DESTROY,
       blockPublicAccess: BlockPublicAccess.BLOCK_ACLS,
       publicReadAccess: true,
+      autoDeleteObjects: true,
     });
     const publicPolicy = new PolicyStatement({
       sid: "PublicReadGetObject",
@@ -229,13 +232,8 @@ class AmazonIVSRTWebDemoStack extends Stack {
     bucket.addToResourcePolicy(publicPolicy)
     publicPolicy.addAnyPrincipal()
 
-    new BucketDeployment(this, 'site-deployment', {
-      destinationBucket: bucket,
-      sources: [Source.asset(path.join(__dirname, '../../dist'))]
-    });
-
     const indexRedirectFunction = new Function(this, 'site-distribution-index-function', {
-      functionName: 'indexRedirectFunciton',
+      functionName: 'indexRedirectFunction',
       code: FunctionCode.fromInline(cfnIndexCode),
       runtime: FunctionRuntime.JS_2_0,
     });
@@ -251,9 +249,15 @@ class AmazonIVSRTWebDemoStack extends Stack {
         origin: new S3Origin(bucket),
       }
     });
+
     new CfnOutput(this, 'site-distribution-url', {
       value: cfDistribution.distributionDomainName,
       key: 'appUrl',
+    })
+
+    new CfnOutput(this, 'site-bucket-name', {
+      value: bucket.bucketName,
+      key: 'siteBucketName',
     })
 
     new CfnOutput(this, 'api-url', {
