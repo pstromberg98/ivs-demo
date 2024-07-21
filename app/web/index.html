@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+  <script src="flutter.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aws-sdk/2.1659.0/aws-sdk.min.js"
+    integrity="sha512-2g5Le8codk/ZtljJhHWjanVroBo3RqTXm34BNAnj0qroRx92GyK0PXFGSlyrYy8/oNkwVeV+csCXG0xFUZtmuQ=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://web-broadcast.live-video.net/1.14.0/amazon-ivs-web-broadcast.js"></script>
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="A Very Good Project created by Very Good CLI.">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="App">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png" />
+
+  <title>App</title>
+  <link rel="manifest" href="manifest.json">
+</head>
+
+<body>
+  <!-- Ensure your flutter target is present on the page... -->
+  <div style="height: 100vh;">
+    <div id="flutter_host" style="height: 100vh;">Loading...</div>
+  </div>
+  <!-- This script installs service_worker.js to provide PWA functionality to
+       application. For more information, see:
+       https://developers.google.com/web/fundamentals/primers/service-workers -->
+  <script>
+    window.Stage = IVSBroadcastClient.Stage
+    window.LocalStageStream = IVSBroadcastClient.LocalStageStream;
+    console.log(`Stage: ${window.Stage}`)
+    async function handlePermissions() {
+      let permissions = {
+        audio: false,
+        video: false,
+      };
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        for (const track of stream.getTracks()) {
+          track.stop();
+        }
+        permissions = { video: true, audio: true };
+      } catch (err) {
+        permissions = { video: false, audio: false };
+        console.error(err.message);
+      }
+      // If we still don't have permissions after requesting them display the error message
+      if (!permissions.video) {
+        console.error('Failed to get video permissions.');
+      } else if (!permissions.audio) {
+        console.error('Failed to get audio permissions.');
+      }
+    }
+    async function devices() {
+      window.cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          deviceId: window.videoDevices[0].deviceId,
+          width: {
+            ideal: streamConfig.maxResolution.width,
+          },
+          height: {
+            ideal: streamConfig.maxResolution.height,
+          },
+        },
+      });
+      window.microphoneStream = await navigator.mediaDevices.getUserMedia({
+        audio: { deviceId: window.audioDevices[0].deviceId },
+      });
+    }
+    var serviceWorkerVersion = null;
+    var scriptLoaded = false;
+    window.addEventListener('load', () => {
+      const loadSessionPage = (target) => {
+        _flutter.loader.loadEntrypoint({
+          serviceWorker: {
+            serviceWorkerVersion: serviceWorkerVersion,
+          },
+          onEntrypointLoaded: function (engineInitializer) {
+            engineInitializer.initializeEngine({ hostElement: target, }).then(function (appRunner) {
+              appRunner.runApp();
+            });
+          }
+        });
+      }
+
+      loadSessionPage(document.querySelector('#flutter_host'))
+      handlePermissions().then(() => {
+        devices();
+      })
+    });
+
+    // loadSessionPage()
+  </script>
+</body>
+
+</html>

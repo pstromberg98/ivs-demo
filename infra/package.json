@@ -13,6 +13,7 @@
     "bootstrap": "cdk bootstrap",
     "deploy": "cdk deploy --all; ts-node src/deploySite.ts",
     "destroy": "cdk destroy --all",
+    "deploy-site": "ts-node src/deploySite.ts",
     "local": "sam local start-api -t ./cdk.out/AmazonIVSRTWebDemoStack.template.json"
   },
   "devDependencies": {
