@@ -6,5 +6,7 @@ extension type Stage._(JSObject obj) implements JSObject {
   external Stage(String token, StageStrategy strategy);
 
   external JSPromise join();
+  external JSPromise leave();
+
   external void on(JSString event, JSFunction callback);
 }

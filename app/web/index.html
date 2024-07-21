@@ -50,6 +50,8 @@
   <script>
     window.Stage = IVSBroadcastClient.Stage
     window.LocalStageStream = IVSBroadcastClient.LocalStageStream;
+    window.StageEvents = IVSBroadcastClient.StageEvents;
+
     console.log(`Stage: ${window.Stage}`)
     async function handlePermissions() {
       let permissions = {

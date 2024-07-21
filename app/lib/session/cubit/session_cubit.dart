@@ -3,9 +3,9 @@ import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 
 import 'package:app/app/app.dart';
+import 'package:app/ivs/ivs.dart';
 import 'package:app/ivs/local_stage_stream.dart';
-import 'package:app/ivs/stage.dart';
-import 'package:app/ivs/strategy.dart';
+import 'package:app/ivs/participant.dart';
 import 'package:app/start/view/start_page.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -70,57 +70,44 @@ class SessionCubit extends Cubit<SessionState> {
         StageStrategy(videoTrack: videoStream, audioTrack: audioStream),
       )
         ..on(
-          'stageConnectionStateChanged'.toJS,
+          StageEvents.STAGE_CONNECTION_STATE_CHANGED,
           (JSString s) {
             print('State change: $s');
           }.toJS,
         )
         ..on(
-          'stageParticipantStreamsAdded'.toJS,
-          (JSObject? participant, JSArray? streams) {
-            print(participant);
-            final isLocal =
-                (participant?.getProperty('isLocal'.toJS) as JSBoolean?)
-                        ?.toDart ??
-                    false;
-            if (isLocal) {
+          StageEvents.STAGE_PARTICIPANT_STREAMS_ADDED,
+          (Participant? participant, JSArray<StageStream>? streams) {
+            print('Participant Local: ${participant?.isLocal.toDart}');
+            if (participant?.isLocal.toDart ?? true) {
               return;
             }
             if (streams != null) {
               final tracks = streams.toDart
-                  .where(
-                    (s) =>
-                        (s as JSObject).getProperty('streamType'.toJS) ==
-                        'video'.toJS,
-                  )
-                  .map(
-                    (s) => (s as JSObject).getProperty('mediaStreamTrack'.toJS),
-                  )
+                  .where((s) => s.streamType.toDart == 'video')
+                  .map((s) => s.mediaStreamTrack)
                   .toList();
               for (final track in tracks) {
-                if (track != null) {
-                  final mediaStream = web.MediaStream();
-                  mediaStream.addTrack(
-                    track as web.MediaStreamTrack,
-                  );
-                  ss.add(mediaStream);
+                final mediaStream = web.MediaStream()..addTrack(track);
+                ss.add(mediaStream);
 
-                  emit(
-                    JoinedSessionState(
-                      localStream: combinedStream,
-                      remoteStreams: ss,
-                    ),
-                  );
-                }
+                emit(
+                  JoinedSessionState(
+                    localStream: combinedStream,
+                    remoteStreams: ss,
+                  ),
+                );
               }
             }
           }.toJS,
         );
       await stage.join().toDart;
-      emit(JoinedSessionState(
-        localStream: combinedStream,
-        remoteStreams: [],
-      ));
+      emit(
+        JoinedSessionState(
+          localStream: combinedStream,
+          remoteStreams: [],
+        ),
+      );
     }
   }
 
