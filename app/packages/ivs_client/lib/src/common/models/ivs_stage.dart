@@ -1,7 +1,7 @@
 import 'dart:js_interop';
 
-import 'package:ivs_client/src/ivs/ivs.dart' as ivs;
-import 'package:ivs_client/src/ivs/participant.dart';
+import 'package:ivs_client/src/web/ivs/ivs.dart' as ivs;
+import 'package:ivs_client/src/web/ivs/participant.dart';
 import 'package:ivs_client/src/common/models/models.dart';
 import 'package:web/web.dart' as web;
 

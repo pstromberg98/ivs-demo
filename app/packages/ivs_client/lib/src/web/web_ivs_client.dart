@@ -4,7 +4,7 @@ import 'dart:math';
 
 import 'package:ivs_client/src/common/ivs_client.dart';
 import 'package:ivs_client/src/common/models/models.dart';
-import 'package:ivs_client/src/ivs/ivs.dart' as ivs_web;
+import 'package:ivs_client/src/web/ivs/ivs.dart' as ivs_web;
 import 'package:ivs_client/src/web/models/models.dart';
 import 'package:web/web.dart' as web;
 

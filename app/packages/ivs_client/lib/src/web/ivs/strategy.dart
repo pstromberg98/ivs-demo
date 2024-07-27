@@ -1,7 +1,7 @@
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 
-import 'package:ivs_client/src/ivs/ivs.dart';
+import 'package:ivs_client/src/web/ivs/ivs.dart';
 // import 'package:web/web.dart' as web;
 
 extension type StageStrategy._(JSObject obj) implements JSObject {

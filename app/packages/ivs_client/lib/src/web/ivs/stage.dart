@@ -1,6 +1,6 @@
 import 'dart:js_interop';
 
-import 'package:ivs_client/src/ivs/ivs.dart';
+import 'package:ivs_client/src/web/ivs/ivs.dart';
 
 extension type Stage._(JSObject obj) implements JSObject {
   external Stage(String token, StageStrategy strategy);
