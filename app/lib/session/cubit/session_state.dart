@@ -12,12 +12,39 @@ class PreJoinedSessionState extends SessionState {
 class JoinedSessionState extends SessionState {
   JoinedSessionState({
     required this.localStream,
-    required this.remoteStreams,
+    this.participants = const [],
   });
 
-  final web.MediaStream localStream;
-  final List<web.MediaStream> remoteStreams;
+  final IvsAVSource localStream;
+  final List<SessionParticipant> participants;
+
+  JoinedSessionState copyWith({
+    IvsAVSource? localStream,
+    List<SessionParticipant>? participants,
+  }) =>
+      JoinedSessionState(
+        localStream: localStream ?? this.localStream,
+        participants: participants ?? this.participants,
+      );
 
   @override
-  List<Object?> get props => [localStream, remoteStreams];
+  List<Object?> get props => [
+        localStream,
+        participants,
+      ];
+}
+
+class SessionParticipant extends Equatable {
+  SessionParticipant({
+    required this.participantId,
+    required this.participantName,
+    required this.stream,
+  });
+
+  final String participantId;
+  final String participantName;
+  final IvsAVSource stream;
+
+  @override
+  List<Object?> get props => [participantId, stream];
 }

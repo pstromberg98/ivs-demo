@@ -1,8 +1,7 @@
 import 'package:app/session/cubit/session_cubit.dart';
-import 'package:app/video_player/video_player.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ivs_client/ivs_client.dart';
 import 'package:web/web.dart' as web;
 
 class SessionPage extends StatelessWidget {
@@ -47,10 +46,6 @@ class _SessionViewState extends State<SessionView> {
 
   @override
   Widget build(BuildContext context) {
-    // set desired items in row
-    // find per item width = width / desired columns
-    // find per item height = height / ((items / desired columns).round())
-
     final state = context.watch<SessionCubit>().state;
     final widget = switch (state) {
       PreJoinedSessionState() => SizedBox(
@@ -85,7 +80,7 @@ class _SessionViewState extends State<SessionView> {
         ),
       JoinedSessionState() => LayoutBuilder(
           builder: (context, constraints) {
-            final itemCount = state.remoteStreams.length + 1;
+            final itemCount = state.participants.length + 1;
             final desiredColumns =
                 itemCount == 1 ? 1 : (itemCount / 4).floor() + 2;
             final width = constraints.biggest.width;
@@ -103,10 +98,13 @@ class _SessionViewState extends State<SessionView> {
               ),
               childrenDelegate: SliverChildListDelegate.fixed(
                 [
-                  _Video(
-                    source: state.localStream,
+                  _Video(source: state.localStream, name: 'you'),
+                  ...state.participants.map(
+                    (p) => _Video(
+                      source: p.stream,
+                      name: p.participantName,
+                    ),
                   ),
-                  ...state.remoteStreams.map((s) => _Video(source: s)),
                 ],
               ),
             );
@@ -120,11 +118,13 @@ class _SessionViewState extends State<SessionView> {
 
 class _VideoDecorations extends StatelessWidget {
   const _VideoDecorations({
-    super.key,
     required this.child,
+    required this.name,
+    super.key,
   });
 
   final Widget child;
+  final String name;
 
   @override
   Widget build(BuildContext context) {
@@ -144,14 +144,12 @@ class _VideoDecorations extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 clipBehavior: Clip.antiAlias,
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: 10,
                     vertical: 2,
                   ),
-                  child: Text(
-                    'test',
-                  ),
+                  child: Text(name),
                 ),
               ),
             ),
@@ -165,9 +163,11 @@ class _VideoDecorations extends StatelessWidget {
 class _Video extends StatefulWidget {
   const _Video({
     required this.source,
+    required this.name,
   });
 
-  final web.MediaStream source;
+  final IvsAVSource source;
+  final String name;
 
   @override
   State<_Video> createState() => _VideoState();
@@ -179,28 +179,13 @@ class _VideoState extends State<_Video> {
 
   @override
   Widget build(BuildContext context) {
-    // return Center(
-    //   child: LayoutBuilder(
-    //     builder: (context, c) {
-    //       return LayoutBuilder(
-    //         builder: (context, constraints) {
-    //           print(constraints);
-    //           return Container(
-    //             width: 10,
-    //             height: 10,
-    //             color: Colors.green,
-    //           );
-    //         },
-    //       );
-    //     },
-    //   ),
-    // );
-    return Container(
+    return ColoredBox(
       color: Colors.black,
       child: FittedBox(
         // clipBehavior: Clip.hardEdge,
         // fit: BoxFit.cover,
         child: _VideoDecorations(
+          name: widget.name,
           child: SizedBox(
             width: width,
             height: height,

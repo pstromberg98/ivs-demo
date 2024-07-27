@@ -1,14 +1,7 @@
-import 'dart:convert';
-import 'dart:js_interop';
-import 'dart:math';
-
-import 'package:app/ivs/stage.dart';
-import 'package:app/ivs/strategy.dart';
+import 'package:app/counter/cubit/counter_cubit.dart';
+import 'package:app/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:app/counter/counter.dart';
-import 'package:app/l10n/l10n.dart';
-import 'package:http/http.dart' as http;
 
 const API_URL = 'https://z0dkhotaok.execute-api.us-east-1.amazonaws.com/prod';
 

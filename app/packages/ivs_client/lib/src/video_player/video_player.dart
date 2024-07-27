@@ -1,5 +1,7 @@
 import 'dart:ui_web' as ui_web;
 import 'package:flutter/material.dart';
+import 'package:ivs_client/ivs_client.dart';
+import 'package:ivs_client/src/web/models/ivs_av_source.dart';
 import 'package:web/web.dart' as web;
 
 int lastId = 0;
@@ -17,7 +19,7 @@ class VideoPlayer extends StatefulWidget {
     super.key,
   });
 
-  final web.MediaStream source;
+  final IvsAVSource source;
   final DimensionCallback? onDimensionChange;
 
   @override
@@ -31,12 +33,13 @@ class _VideoPlayerState extends State<VideoPlayer> {
 
   @override
   void initState() {
+    final source = widget.source as WebIvsAVSource;
     videoElement = web.HTMLVideoElement()
       ..id = 'video-$id'
       ..style.border = 'none'
       ..style.height = '100%'
       ..style.width = '100%'
-      ..srcObject = widget.source
+      ..srcObject = source.mediaStream
       ..play();
 
     ui_web.platformViewRegistry.registerViewFactory(
