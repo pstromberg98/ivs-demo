@@ -3,4 +3,4 @@ library ivs_client;
 
 export 'src/common/ivs_client.dart';
 export 'src/common/models/models.dart';
-export 'src/video_player/video_player.dart';
+export 'src/common/ui/video_player.dart';

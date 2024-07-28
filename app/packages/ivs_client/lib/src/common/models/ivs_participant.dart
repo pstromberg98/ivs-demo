@@ -7,5 +7,5 @@ class IvsParticipant {
 
   final String id;
   final bool isLocal;
-  final Object attributes;
+  final Map attributes;
 }

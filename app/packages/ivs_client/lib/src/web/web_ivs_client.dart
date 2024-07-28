@@ -12,6 +12,7 @@ import 'package:web/web.dart' as web;
 /// A Very Good Project created by Very Good CLI.
 /// {@endtemplate}
 class WebIvsClient implements IvsClient {
+  @override
   Future<IvsStage> stage(String token) async {
     final videoConstraintsObj = JSObject()
       ..setProperty(

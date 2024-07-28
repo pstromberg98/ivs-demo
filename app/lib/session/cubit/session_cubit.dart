@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:app/app/app.dart';
 import 'package:app/start/view/start_page.dart';
@@ -37,14 +38,11 @@ class SessionCubit extends Cubit<SessionState> {
 
           if (participant != null && state is JoinedSessionState) {
             final joinedState = state as JoinedSessionState;
-            const name = 'unknown';
-            // final attributes = participant.attributes;
-            // if (attributes != null && attributes.isA<JSObject>()) {
-            //   name = ((attributes as JSObject).getProperty('username'.toJS)
-            //               as JSString?)
-            //           ?.toDart ??
-            //       'unknown';
-            // }
+            var name = 'unknown';
+            final attributes = participant.attributes;
+            if (attributes.containsKey('username')) {
+              name = attributes['username'] as String;
+            }
 
             emit(
               joinedState.copyWith(
@@ -80,6 +78,13 @@ class SessionCubit extends Cubit<SessionState> {
       emit(
         JoinedSessionState(
           localStream: stage.localSource,
+          // participants: [
+          //   SessionParticipant(
+          //     participantId: Random().nextInt(1000).toString(),
+          //     participantName: 'whatever',
+          //     stream: stage.localSource,
+          //   ),
+          // ],
         ),
       );
     }

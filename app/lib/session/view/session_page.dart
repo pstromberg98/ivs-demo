@@ -2,7 +2,6 @@ import 'package:app/session/cubit/session_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ivs_client/ivs_client.dart';
-import 'package:web/web.dart' as web;
 
 class SessionPage extends StatelessWidget {
   const SessionPage({
@@ -118,44 +117,39 @@ class _SessionViewState extends State<SessionView> {
 
 class _VideoDecorations extends StatelessWidget {
   const _VideoDecorations({
-    required this.child,
     required this.name,
+    required this.size,
     super.key,
   });
 
-  final Widget child;
   final String name;
+  final Size size;
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        child,
-        Positioned(
-          right: 0,
-          left: 0,
-          bottom: 0,
-          child: Center(
+    return SizedBox(
+      width: size.width,
+      height: size.height,
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 2),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.grey.shade200.withOpacity(0.6),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            clipBehavior: Clip.antiAlias,
             child: Padding(
-              padding: const EdgeInsets.only(bottom: 2),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200.withOpacity(0.6),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 2,
-                  ),
-                  child: Text(name),
-                ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 2,
               ),
+              child: Text(name),
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 }
@@ -179,28 +173,46 @@ class _VideoState extends State<_Video> {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: Colors.black,
-      child: FittedBox(
-        // clipBehavior: Clip.hardEdge,
-        // fit: BoxFit.cover,
-        child: _VideoDecorations(
-          name: widget.name,
-          child: SizedBox(
-            width: width,
-            height: height,
-            child: VideoPlayer(
-              source: widget.source,
-              onDimensionChange: (width, height) {
-                setState(() {
-                  this.width = width.toDouble();
-                  this.height = height.toDouble();
-                });
-              },
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        ColoredBox(
+          color: Colors.black,
+          child: FittedBox(
+            child: SizedBox(
+              width: width,
+              height: height,
+              child: IvsAVSourcePlayer(
+                source: widget.source,
+                onDimensionChange: (width, height) {
+                  setState(() {
+                    this.width = width.toDouble();
+                    this.height = height.toDouble();
+                  });
+                },
+              ),
             ),
           ),
         ),
-      ),
+        Center(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final size = width > 0 && height > 0
+                  ? constraints
+                      .loosen()
+                      .constrainSizeAndAttemptToPreserveAspectRatio(
+                        Size(width * 1000, height * 1000),
+                      )
+                  : Size.zero;
+
+              return _VideoDecorations(
+                size: size,
+                name: widget.name,
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

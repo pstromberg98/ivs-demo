@@ -1,32 +1,30 @@
 import 'dart:ui_web' as ui_web;
 import 'package:flutter/material.dart';
-import 'package:ivs_client/ivs_client.dart';
-import 'package:ivs_client/src/web/models/ivs_av_source.dart';
+import 'package:ivs_client/src/common/ui/video_player.dart';
+import 'package:ivs_client/src/web/models/models.dart';
 import 'package:web/web.dart' as web;
 
-int lastId = 0;
+int _lastId = 0;
 
 int _getNextId() {
-  return lastId++;
+  return _lastId++;
 }
 
-typedef DimensionCallback = void Function(int width, int height);
-
-class VideoPlayer extends StatefulWidget {
-  const VideoPlayer({
+class WebIvsAVSourcePlayer extends StatefulWidget {
+  const WebIvsAVSourcePlayer({
+    super.key,
     required this.source,
     this.onDimensionChange,
-    super.key,
   });
 
-  final IvsAVSource source;
+  final WebIvsAVSource source;
   final DimensionCallback? onDimensionChange;
 
   @override
-  State<VideoPlayer> createState() => _VideoPlayerState();
+  State<WebIvsAVSourcePlayer> createState() => _WebIvsAVSourcePlayerState();
 }
 
-class _VideoPlayerState extends State<VideoPlayer> {
+class _WebIvsAVSourcePlayerState extends State<WebIvsAVSourcePlayer> {
   int id = _getNextId();
 
   late final web.HTMLVideoElement videoElement;

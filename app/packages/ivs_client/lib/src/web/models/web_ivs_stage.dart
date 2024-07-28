@@ -26,6 +26,36 @@ class WebIvsStage implements IvsStage {
     await _underlyingStage.join().toDart;
   }
 
+  void onParticipantStreamsAdded(ParticipantStreamsAddedCallback callback) {
+    _underlyingStage.on(
+      ivs.StageEvents.STAGE_PARTICIPANT_STREAMS_ADDED,
+      (Participant? participant, JSArray<ivs.StageStream>? streams) {
+        if (participant != null && streams != null) {
+          var attributes = {};
+          if (participant.attributes?.isA<JSObject>() ?? false) {
+            attributes = JSObjectX(
+              participant.attributes! as JSObject,
+            ).toDart;
+          }
+          final mediaStream = web.MediaStream();
+          for (final stream in streams.toDart) {
+            mediaStream.addTrack(stream.mediaStreamTrack);
+          }
+          callback(
+            IvsParticipant(
+              id: participant.id.toDart,
+              isLocal: participant.isLocal.toDart,
+              attributes: attributes,
+            ),
+            WebIvsAVSource(mediaStream),
+          );
+        } else {
+          callback(null, null);
+        }
+      }.toJS,
+    );
+  }
+
   void onParticipantJoined(ParticipantJoinedCallback callback) {
     _underlyingStage.on(
       ivs.StageEvents.STAGE_PARTICIPANT_JOINED,
@@ -38,11 +68,12 @@ class WebIvsStage implements IvsStage {
       ivs.StageEvents.STAGE_PARTICIPANT_LEFT,
       (Participant? participant) {
         if (participant != null) {
+          // final attributes = JSObjectX(participant.obj).toDart();
           callback(
             IvsParticipant(
               id: participant.id.toDart,
               isLocal: participant.isLocal.toDart,
-              attributes: Object(),
+              attributes: Map(),
             ),
           );
         } else {
@@ -51,28 +82,26 @@ class WebIvsStage implements IvsStage {
       }.toJS,
     );
   }
+}
 
-  void onParticipantStreamsAdded(ParticipantStreamsAddedCallback callback) {
-    _underlyingStage.on(
-      ivs.StageEvents.STAGE_PARTICIPANT_STREAMS_ADDED,
-      (Participant? participant, JSArray<ivs.StageStream>? streams) {
-        if (participant != null && streams != null) {
-          final mediaStream = web.MediaStream();
-          for (final stream in streams.toDart) {
-            mediaStream.addTrack(stream.mediaStreamTrack);
-          }
-          callback(
-            IvsParticipant(
-              id: participant.id.toDart,
-              isLocal: participant.isLocal.toDart,
-              attributes: Object(),
-            ),
-            WebIvsAVSource(mediaStream),
-          );
-        } else {
-          callback(null, null);
+extension type Object(JSObject _) implements JSObject {
+  external static JSArray<JSAny> keys(JSObject obj);
+}
+
+extension type JSObjectX(JSObject _) implements JSObject {
+  external JSAny? operator [](String value);
+
+  Map get toDart {
+    Map obj = {};
+    for (final key in Object.keys(_).toDart) {
+      if (key is JSString) {
+        final value = this[key.toDart];
+        if (value != null && value.isA<JSString>()) {
+          obj[key] = (value as JSString).toDart;
         }
-      }.toJS,
-    );
+      }
+    }
+
+    return obj;
   }
 }
